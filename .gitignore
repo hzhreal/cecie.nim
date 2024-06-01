@@ -1,3 +1,8 @@
 nimcache/
+cache/
 nimblecache/
 htmldocs/
+pkg/
+*.elf
+*.pkg
+helper.sh

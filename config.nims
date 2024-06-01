@@ -1,18 +1,23 @@
 import std/strutils
 import os
+
+var jbcPath = getCurrentDir() / "ps4-libjbc"
+
 switch "o", "cecie.elf"
 switch "mm", "orc"
 switch "nimcache", "./cache"
 switch "threads", "off"
+switch("cincludes", jbcPath)
+switch("passL", "-L" & jbcPath & " -ljbc")
 
 proc getContentId: string =
   let servId = getEnv("app_SERVICE_ID")
-  let titleId = getEnv("app_TITLE_ID")
-  var productLabel = getEnv("app_PRODUCT_LABEL")
-  productLabel = productLabel.toUpperAscii
-  productLabel = productLabel.alignLeft(16, '0')
+  #let titleId = getEnv("app_TITLE_ID")
+  #var productLabel = getEnv("app_PRODUCT_LABEL")
+  #productLabel = productLabel.toUpperAscii
+  #productLabel = productLabel.alignLeft(16, '0')
   var contentId: string
-  contentId.addf("$#-$#_00-$#", servId, titleId, productLabel)
+  contentId.addf("$#", servId)
   return contentId
 
 proc getOOBinaryPath(binName: string): string =
@@ -26,7 +31,6 @@ proc getOOBinaryPath(binName: string): string =
   else:
     raise newException(ValueError, "Invalid host os $#" % hostOS)
   
-
   result.addf("$#/bin/$#/$#",getEnv("OO_PS4_TOOLCHAIN"), osDir, binName)
   if ExeExt != "":
     result = addFileExt(result, ExeExt)
