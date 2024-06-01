@@ -12,6 +12,9 @@ import "./commands/cleanup"
 import "./commands/upload_file"
 import "./commands/download_file"
 import "./commands/list_files"
+import "./commands/create_save"
+import "./commands/decrypt_sealed_key"
+
 import strutils
 import asyncnet
 import asyncdispatch
@@ -30,6 +33,8 @@ cmds[rtClean] = cleanup.cmd
 cmds[rtUploadFile] = uploadFile.cmd 
 cmds[rtDownloadFile] = downloadFile.cmd 
 cmds[rtListFiles] = listFiles.cmd
+cmds[rtCreateSave] = createSave.cmd
+cmds[rtDecryptSealedKey] = decryptSealedKey.cmd
 
 var slot: uint
 var slotTotal: uint64

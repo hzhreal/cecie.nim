@@ -4,6 +4,7 @@ type ClientRequestType* = enum
   rtKeySet,
   rtListSaveFiles,
   rtCreateSave,
+  rtDecryptSealedKey,
   rtDumpSave,
   rtUpdateSave,
   rtResignSave,
@@ -13,14 +14,16 @@ type ClientRequestType* = enum
   rtListFiles,
   rtInvalid
 
-
 type ListClientRequest* = object
   saveName*: string
 
 type CreateClientRequest* = object
   sourceFolder*: string
   saveName*: string
-  selectOnly*: seq[string]
+  blocks*: cint
+
+type SealedKeyClientRequest* = object
+  sealedKey*: seq[byte]
 
 type UpdateClientRequest* = object
   sourceFolder*: string
@@ -58,6 +61,8 @@ type ClientRequest* = object
     list*: ListClientRequest
   of rtCreateSave:
     create*: CreateClientRequest
+  of rtDecryptSealedKey:
+    decsdkey*: SealedKeyClientRequest
   of rtUpdateSave:
     update*: UpdateClientRequest
   of rtDumpSave:

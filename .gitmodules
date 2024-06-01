@@ -1,0 +1,9 @@
+[submodule "ps4-libjbc"]
+	path = ps4-libjbc
+	url = https://github.com/ac2pic/ps4-libjbc
+[submodule "orbis.nim"]
+	path = orbis.nim
+	url = https://github.com/OpenOrbis-Nim/orbis.nim
+[submodule "ps4-libjbc.nim"]
+	path = ps4-libjbc.nim
+	url = https://github.com/OpenOrbis-Nim/ps4-libjbc.nim
