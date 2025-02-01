@@ -10,7 +10,7 @@ proc getFileSize*(path: string) : Off =
   let fd = sys_open(path.cstring, O_RDONLY, 0)
   if fd == -1:
     return -1
-  let size = lseek(fd, SEEK_SET, SEEK_END)
+  let size = lseek(fd, 0, SEEK_END)
   discard close(fd)
   return size
 
