@@ -2,8 +2,6 @@ import asyncdispatch
 import strutils
 import asyncnet
 import logging
-import "./orbis/buffered_text"
-import "./orbis/logging" as l
 import "logger"
 import "syscalls"
 import "./config"
@@ -29,12 +27,12 @@ proc setup() =
   # Mount required devices into sandbox
   discard sudo_mount("/dev/", "rootdev")
   var s : Stat
-  clog stat("/rootdev/pfsctldev", s)
-  clog sys_mknod("/dev/pfsctldev", Mode(S_IFCHR or 0o777), s.st_dev)
-  clog stat("/rootdev/lvdctl", s)
-  clog sys_mknod("/dev/lvdctl", Mode(S_IFCHR or 0o777), s.st_dev)
-  clog stat("/rootdev/sbl_srv", s)
-  clog sys_mknod("/dev/sbl_srv", Mode(S_IFCHR or 0o777), s.st_dev)
+  echo stat("/rootdev/pfsctldev", s)
+  echo sys_mknod("/dev/pfsctldev", Mode(S_IFCHR or 0o777), s.st_dev)
+  echo stat("/rootdev/lvdctl", s)
+  echo sys_mknod("/dev/lvdctl", Mode(S_IFCHR or 0o777), s.st_dev)
+  echo stat("/rootdev/sbl_srv", s)
+  echo sys_mknod("/dev/sbl_srv", Mode(S_IFCHR or 0o777), s.st_dev)
   discard sudo_unmount("rootdev")
 
   # Get max keyset that can be decrypted
@@ -51,27 +49,39 @@ setup()
 
 discard set_cred(old_cred)
 
-
 proc handleClient(clientContext : tuple[address: string, client: AsyncSocket]) {.async.} = 
   # Wait for message
   # let address = clientContext.address
   let client = clientContext.client
   var data = await client.recvLine()
   if data.len == 0:
+    client.close()
     return
   let req = parseRequest(data)
-  await handleCmd(client, req)
-  client.close()
+  try:
+    await handleCmd(client, req)
+    client.close()
+  except CatchableError:
+    client.close()
 
 proc requestListener() {.async.} =
-  var server = newAsyncSocket()
-  server.setSockOpt(OptReuseAddr, true)
-  server.bindAddr(SERVER_PORT)
-  server.listen()
-  clog "Listening at port ", int(SERVER_PORT)
+  var server: AsyncSocket
   while true:
-    let clientContext = await server.acceptAddr()
-    asyncCheck handleClient(clientContext)
+    try:
+      server = newAsyncSocket()
+      server.setSockOpt(OptReuseAddr, true)
+      server.bindAddr(SERVER_PORT)
+      server.listen()
+      echo "Listening at port ", int(SERVER_PORT)
+
+      while true:
+        let clientContext = await server.acceptAddr()
+        asyncCheck handleClient(clientContext)
+
+    except CatchableError:
+      # echo "Restarting server..."
+      server.close()
+      discard sleepAsync(5000)
 
 asyncCheck requestListener()
 

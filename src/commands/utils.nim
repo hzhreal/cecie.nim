@@ -4,6 +4,16 @@ import os
 import std/paths
 import strutils
 
+import "../syscalls"
+
+proc getFileSize*(path: string) : Off =
+  let fd = sys_open(path.cstring, O_RDONLY, 0)
+  if fd == -1:
+    return -1
+  let size = lseek(fd, SEEK_SET, SEEK_END)
+  discard close(fd)
+  return size
+
 proc shouldSkipFile*(relativePath: string, kind: PathComponent, fileWhitelist: seq[string]): bool =
   var skipFile = false
 
@@ -40,6 +50,7 @@ proc checkSave*(saveDirectory: string, saveName: string) : int =
   let saveImagePath = joinPath(saveDirectory, saveName)
   if stat(saveImagePath.cstring, s) != 0 or s.st_mode.S_ISDIR:
     return -1
+  s.st_size = getFileSize(saveImagePath)
 
   const saveBlocks = 1 shl 15
   if s.st_size mod saveBlocks != 0:
@@ -53,6 +64,7 @@ proc checkSave*(saveDirectory: string, saveName: string) : int =
   let saveKeyPath = joinPath(saveDirectory, saveName & ".bin")
   if stat(saveKeyPath.cstring, s) != 0 or s.st_mode.S_ISDIR:
     return -4
+  s.st_size = getFileSize(saveKeyPath)
 
   if s.st_size != 96:
     return -5
@@ -76,4 +88,3 @@ proc getRequiredFiles*(targetDirectory: string, whitelist: seq[string]) : seq[tu
     if shouldFilter and shouldSkipFile(filePath, kind, whitelist):
       continue
     result.add (kind, filePath)
-

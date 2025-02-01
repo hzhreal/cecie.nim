@@ -2,9 +2,6 @@ import os
 import posix
 import logging
 
-import "orbis/buffered_text"
-import "orbis/logging" as l
-
 import "orbis/kernel"
 import "orbis/savedata_advanced"
 
@@ -26,8 +23,6 @@ type MountSaveDataOpt = object
 
 var sceFsInitMountSaveDataOpt: proc(opt: ptr MountSaveDataOpt) : cint {.cdecl.}
 var sceFsMountSaveData: proc(opt: ptr MountSaveDataOpt, volumePath: cstring, mountPath: cstring, decryptedSealKey: array[32, byte]) : cint {.cdecl.}
-
-
 
 type UmountSaveDataOpt = object
   dummy: bool
@@ -62,7 +57,7 @@ proc loadPrivLibs*(): bool  =
   if kernel_sys >= 0:
     discard sceKernelDlsym(kernel_sys, "statfs", cast[ptr pointer](statfs.addr));
   else:
-    clog "kernel_sys: ", kernel_sys
+    echo "kernel_sys: ", kernel_sys
     success = false
   return success
 
@@ -82,7 +77,7 @@ proc createSave*(folder: string, saveName: string, blocks: cint) : cint =
   removeFile(volumePath)
   var fd = sys_open(volumeKeyPath.cstring, O_CREAT or O_EXCL or O_RDWR, 0o777)
   if fd == -1:
-    clog "errno: ", errno, " file: ", volumeKeyPath
+    echo "errno: ", errno, " file: ", volumeKeyPath
     return -3
   discard write(fd,sealedKey.addr, sealedKey.len)
   discard close(fd)
